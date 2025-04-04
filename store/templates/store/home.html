@@ -1,0 +1,203 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Home - IPL Jersey Store{% endblock title %}
+
+{% block content %}
+    {# Hero Banner Section #}
+    <section class="py-5" style="background: linear-gradient(135deg, #3498db, #2c3e50); position: relative;">
+        <div class="container position-relative py-5">
+            <div class="row">
+                <div class="col-lg-7 py-5 text-white">
+                    <h1 class="display-4 fw-bold mb-4">Official IPL Team Jerseys</h1>
+                    <p class="fs-5 mb-4">Show your team spirit with authentic IPL jerseys. Top quality fabric with official team logos for all 10 IPL franchises.</p>
+                    <div class="d-flex gap-3">
+                        <a href="#products" class="btn btn-primary btn-lg px-4">Shop Now</a>
+                        <a href="#" class="btn btn-outline-light btn-lg px-4">Team Collections</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# Product Showcase Section #}
+    <section id="products" class="container py-5">
+        <h2 class="section-heading">Team Jerseys</h2>
+        
+        {% if products %}
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for product in products %}
+                    <div class="col">
+                        <div class="card h-100 product-card">
+                            <div class="position-relative">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="Placeholder">
+                                {% endif %}
+                                <span class="position-absolute top-0 end-0 badge bg-primary m-3">{{ product.team }}</span>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title text-truncate">{{ product.name }}</h5>
+                                
+                                <!-- Stock Availability -->
+                                <p class="card-text small {% if product.stock > 0 %}text-success{% else %}text-danger{% endif %} mb-2">
+                                    {% if product.stock > 0 %}
+                                        <i class="fas fa-check-circle me-1"></i> In Stock ({{ product.stock }} available)
+                                    {% else %}
+                                        <i class="fas fa-times-circle me-1"></i> Out of Stock
+                                    {% endif %}
+                                </p>
+                                
+                                <!-- Price Display -->
+                                <p class="card-text fw-bold fs-5 mb-2">₹{{ product.price }}</p>
+                                
+                                <!-- Quantity Selection -->
+                                <div class="mb-3">
+                                    <label for="quantity-{{ product.id }}" class="form-label small text-muted">Quantity:</label>
+                                    <div class="input-group input-group-sm">
+                                        <button class="btn btn-outline-secondary qty-btn" type="button" onclick="decreaseQuantity({{ product.id }})"
+                                                {% if product.stock <= 0 %}disabled{% endif %}>
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" class="form-control text-center" id="quantity-{{ product.id }}" 
+                                               value="1" min="1" max="{{ product.stock }}" 
+                                               {% if product.stock <= 0 %}disabled{% endif %}>
+                                        <button class="btn btn-outline-secondary qty-btn" type="button" onclick="increaseQuantity({{ product.id }})"
+                                                {% if product.stock <= 0 %}disabled{% endif %}>
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Add to Cart Button -->
+                                <div class="mt-auto text-end">
+                                    <form action="{% url 'cart:cart_add' product.id %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" id="form-quantity-{{ product.id }}">
+                                        <button type="submit" class="btn btn-sm btn-primary"
+                                               {% if product.stock <= 0 %}disabled style="pointer-events: none; opacity: 0.6;"{% endif %}
+                                               onclick="setFormQuantity({{ product.id }})">
+                                            <i class="fas fa-shopping-cart me-1"></i> Add to Cart
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle me-2"></i> No products found. Please check back later.
+            </div>
+        {% endif %}
+    </section>
+
+    {# Testimonials Section #}
+    <section class="py-5" style="background-color: #f8f9fa;">
+        <div class="container">
+            <h2 class="section-heading">Customer Reviews</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <div class="card border-0 shadow-sm h-100 p-4">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white me-3" style="width: 50px; height: 50px;">
+                                    <span>RD</span>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">Rahul Dravid</h5>
+                                    <small class="text-muted">Mumbai</small>
+                                </div>
+                            </div>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="card-text">"The quality of the MI jersey is excellent! The fabric is breathable and perfect for hot summer days. Very satisfied with my purchase."</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <div class="card border-0 shadow-sm h-100 p-4">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white me-3" style="width: 50px; height: 50px;">
+                                    <span>VK</span>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">Virat Kohli</h5>
+                                    <small class="text-muted">Bangalore</small>
+                                </div>
+                            </div>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                        <p class="card-text">"Fast delivery and authentic RCB merchandise. The sizes run true to fit and the jersey has all the official logos and sponsorships. Will buy again!"</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm h-100 p-4">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white me-3" style="width: 50px; height: 50px;">
+                                    <span>MS</span>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">Mahi Singh</h5>
+                                    <small class="text-muted">Chennai</small>
+                                </div>
+                            </div>
+                            <div class="text-warning">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="card-text">"The Chennai Super Kings jersey is perfect! I've worn it to several matches and it's held up well. The yellow is bright and the material feels premium."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    // Quantity manipulation functions
+    function increaseQuantity(productId) {
+        const quantityInput = document.getElementById(`quantity-${productId}`);
+        let currentValue = parseInt(quantityInput.value);
+        let maxValue = parseInt(quantityInput.getAttribute('max'));
+        if (currentValue < maxValue) {
+            quantityInput.value = currentValue + 1;
+        }
+    }
+
+    function decreaseQuantity(productId) {
+        const quantityInput = document.getElementById(`quantity-${productId}`);
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+        }
+    }
+
+    // Function to set the hidden form quantity before submission
+    function setFormQuantity(productId) {
+        const quantityValue = document.getElementById(`quantity-${productId}`).value;
+        document.getElementById(`form-quantity-${productId}`).value = quantityValue;
+        // Return true to allow form submission (though default behavior is usually sufficient)
+        return true;
+    }
+</script>
+{% endblock extra_js %} 
