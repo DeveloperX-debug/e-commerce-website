@@ -4,29 +4,36 @@ from django.db import migrations
 from django.contrib.auth import get_user_model
 import os
 
-# Define the user and the NEW password
-USERNAME_TO_RESET = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'DeveloperX') # Usually the same user
-NEW_PASSWORD = 'ResetMeNow123!' # TEMPORARY - Change immediately after login
+# Define the user credentials
+USERNAME = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'DeveloperX')
+EMAIL = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com') # Needed if creating
+PASSWORD = 'ResetMeNow123!' # TEMPORARY - Change immediately after login
 
-def set_new_password(apps, schema_editor):
+def create_or_reset_superuser(apps, schema_editor):
     User = get_user_model()
     try:
-        user = User.objects.get(username=USERNAME_TO_RESET)
-        user.set_password(NEW_PASSWORD)
+        # Try to find the existing user
+        user = User.objects.get(username=USERNAME)
+        user.set_password(PASSWORD)
         user.save()
-        print(f'\nPassword for user {USERNAME_TO_RESET} has been reset.')
+        print(f'\nPassword for existing user {USERNAME} has been reset.')
     except User.DoesNotExist:
-        print(f'\nUser {USERNAME_TO_RESET} not found. Cannot reset password.')
-        # Optionally, you could create the user here if they don't exist, 
-        # combining with the previous migration's logic, but let's keep it simple.
-        pass 
+        # User not found, so create them
+        print(f'\nUser {USERNAME} not found. Creating user...')
+        User.objects.create_superuser(
+            username=USERNAME,
+            email=EMAIL,
+            password=PASSWORD
+        )
+        print(f'Superuser {USERNAME} created with temporary password.')
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('store', '0003_create_superuser'), # Depends on the previous migration
+        ('store', '0003_create_superuser'), # Depends on the previous attempt
     ]
 
     operations = [
-        migrations.RunPython(set_new_password),
+        # Rename the function being called if you changed its name
+        migrations.RunPython(create_or_reset_superuser),
     ]
